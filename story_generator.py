@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 import openai
 from vector_store import VectorStore
 
+# Updated image generation to create simple, high-clarity images without any text elements
+# Uses HD quality setting for better resolution and clean visual presentation
+
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
