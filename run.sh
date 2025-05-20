@@ -40,4 +40,4 @@ fi
 
 # Run the Streamlit app
 echo "Starting Scene-by-Scene Story Generator..."
-streamlit run app.py 
+streamlit run main.py 

@@ -1,10 +1,13 @@
 streamlit==1.29.0
-langchain==0.0.350
-openai==1.12.0
-qdrant-client==1.7.0
 python-dotenv==1.0.0
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.4.2
 pillow==10.1.0
+requests==2.31.0
+# Add any other dependencies needed for story_generator and knowledge_base
+# such as vector database, OpenAI integration, etc.
+openai==1.3.0
+qdrant-client==1.6.0
 numpy==1.24.3
 sentence-transformers==2.2.2
-pydantic==2.4.2
-requests==2.31.0 

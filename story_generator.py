@@ -13,7 +13,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 class StoryGenerator:
     def __init__(self):
         self.vector_store = VectorStore()
-        self.llm_model = "gpt-4o"
+        self.llm_model = "gpt-4"
         
         # Detailed grade level vocabulary and complexity guidelines for each specific grade
         self.grade_guidelines = {
@@ -264,10 +264,19 @@ class StoryGenerator:
         3. An image prompt that describes what should be visualized for this scene (detailed description for image generation) with a style appropriate for {grade} level: {image_style}
         
         For the image prompt, follow these guidelines:
-        - Keep text in the image to an absolute minimum (3-5 words maximum)
-        - Any text should be simple labels or short titles only
-        - Don't request decorative or stylized text
-        - Be specific about what content should be visualized rather than focusing on text elements
+        - Do NOT include ANY text or written elements whatsoever
+        - Focus entirely on the visual representation of concepts, objects, and scenarios
+        - Describe a clear, educational visual that explains concepts without relying on text
+        - Do not request labels, titles, annotations, captions, or any written words
+        - Be specific about the educational content to be visualized in a purely visual manner
+        - Create a visually stunning and memorable scene with rich details
+        - Use creative visual metaphors to represent complex concepts
+        - Include detailed descriptions of lighting, composition, perspective, and atmosphere
+        - Describe specific visual elements that make the image engaging and emotionally resonant
+        - Suggest a color palette that enhances the mood and educational content
+        - Include foreground, middleground, and background elements for depth
+        - Describe textures and materials to create a tactile sense in the image
+        - Suggest dynamic compositions that draw the viewer's eye to key educational elements
         
         Ensure the content aligns with {curriculum} curriculum standards for {grade} level.
         
@@ -338,7 +347,7 @@ class StoryGenerator:
         
         # If image prompt is still empty, generate a default one
         if not image_prompt:
-            image_prompt = f"A {image_style} depicting {subject} focusing on {topic}, specifically {scene_description[:100]}"
+            image_prompt = f"A visual representation in {image_style} showing {subject} focusing on {topic}, specifically {scene_description[:100]} without any text or written elements"
         
         return {
             "narrative": narrative,
@@ -355,32 +364,52 @@ class StoryGenerator:
                 print(f"Warning: Empty image prompt detected. Using default prompt instead.")
                 prompt = default_prompt
             
-            # Add specific instructions for text clarity
-            text_clarity_instructions = """
-            IMPORTANT INSTRUCTIONS FOR TEXT RENDERING:
-            - Any text in the image must be crystal clear, large, and easily readable
-            - Use a clear, bold font with high contrast against the background
-            - Avoid stylized or decorative text that might be difficult to read
-            - Maintain adequate spacing between letters and words
-            - Keep text simple and minimal - only include essential labels or titles
-            - Position text in uncluttered areas of the image
-            - Text should be perfectly horizontal (not curved, angled, or distorted)
+            # Enhanced image generation instructions
+            enhanced_instructions = """
+            IMPORTANT INSTRUCTIONS FOR IMAGE GENERATION:
+            - Create a highly detailed, vibrant, and visually rich illustration
+            - Use a photorealistic or detailed artistic style with rich colors and strong contrast
+            - Include fine details that make the scene come alive and appear three-dimensional
+            - Focus on creating depth, texture, and atmosphere in the scene
+            - Emphasize visual storytelling through composition, lighting, and perspective
+            - Create images with emotional impact and visual appeal
+            - Ensure high-quality visual representation with clear focal points
+            - Avoid ANY text, labels, or annotations whatsoever
+            - Make sure educational concepts are depicted with visual clarity
+            - Use lighting effects, shadows, and highlights to create a sense of depth
+            - Include interesting background elements that enhance the main subject
             """
             
-            enhanced_prompt = f"{text_clarity_instructions}\n\n{prompt}"
+            # Enhance the original prompt with more specific visual details
+            visual_enhancements = """
+            Visual Style Guidelines:
+            - Use a vibrant color palette with strong contrast and saturation
+            - Include atmospheric lighting effects (ambient occlusion, rim lighting, etc.)
+            - Add subtle background gradients or textures that complement the main subject
+            - Create a clear focal point with detailed foreground elements
+            - Use perspective and depth of field to create visual interest
+            - Include small details that reward close inspection
+            - Implement dramatic lighting that enhances the mood and subject
+            """
+            
+            enhanced_prompt = f"{enhanced_instructions}\n\n{prompt}\n\n{visual_enhancements}"
             
             response = openai.images.generate(
                 model="dall-e-3",
                 prompt=enhanced_prompt,
                 size="1024x1024",
-                quality="standard",
+                quality="hd",
+                style="vivid",
                 n=1,
             )
             
             return response.data[0].url
         except Exception as e:
             print(f"Error generating image: {e}")
-            return None
+            # Provide a fallback URL to a placeholder image
+            fallback_url = "https://placehold.co/1024x1024/3498db/FFFFFF?text=Image+Generation+Failed"
+            print(f"Using fallback image: {fallback_url}")
+            return fallback_url
     
     def generate_complete_story(self, subject: str, topic: str, grade: str = "grade_6", curriculum: str = "General") -> Dict[str, Any]:
         """Generate a complete story with multiple scenes, each with narrative, explanation, and image appropriate for the grade level and curriculum"""
@@ -415,18 +444,18 @@ class StoryGenerator:
         
         # Generate each scene
         scenes = []
+        total_scenes = len(scenes_descriptions)
+        
         for i, scene_desc in enumerate(scenes_descriptions):
-            print(f"Generating scene {i+1}/{len(scenes_descriptions)}...")
+            print(f"Generating scene {i+1}/{total_scenes}...", end="\r")
             scene = self.generate_scene(subject, topic, scene_desc, grade, scenes, curriculum)
-            
-            # Debug print to check the image prompt
-            print(f"Image prompt for scene {i+1}: {scene['image_prompt'][:100]}...")
             
             # Generate image for the scene
             image_url = self.generate_image(scene["image_prompt"])
             scene["image_url"] = image_url
             
             scenes.append(scene)
+            print(f"Generated scene {i+1}/{total_scenes} ✓")
         
         return {
             "subject": subject,
