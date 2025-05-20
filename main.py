@@ -97,6 +97,7 @@ async def json_decode_exception_handler(request: Request, exc: json.JSONDecodeEr
 
 @app.post("/generate-story", response_model=StoryResponse)
 async def generate_story(request: StoryRequest):
+    
     try:
         # Validate required fields
         if not request.subject or not request.topic:
