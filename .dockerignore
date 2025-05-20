@@ -1,7 +1,7 @@
-.git
 __pycache__/
-*.pyc
+*.pt
+*.npy
+*.bin
+*.mp4
+*.gif
 .env
-.env.*
-notebooks/
-data/
